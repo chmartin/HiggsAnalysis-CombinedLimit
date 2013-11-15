@@ -25,11 +25,6 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
    histo1(_histo1),
    histo2(_histo2)
  { 
-  if (histos.size()!=3){
-    coutE(InputArguments) << "HZZ4L_RooSpinZeroPdf::HZZ4L_RooSpinZeroPdf(" << GetName() 
-			  << ") number of histograms must be 3" << endl ;
-    assert(0);
-  }
  } 
 
 
