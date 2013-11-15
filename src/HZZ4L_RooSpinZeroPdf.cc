@@ -14,14 +14,16 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
 					     RooAbsReal& _kd,
 					     RooAbsReal& _kdint,
 					     RooAbsReal& _fai,
-					     vector<TH2F*>& _histos, 
-					     bool      _withAcc):
+					     TH2F& _histo0,
+					     TH2F& _histo1,
+					     TH2F& _histo2):
    RooAbsPdf(name,title), 
    kd("kd","kd",this,_kd),
    kdint("kdint","kdint",this,_kdint),
    fai("fai","fai",this,_fai),
-   histos(_histos),
-   withAcc(_withAcc)
+   histo0(_histo0),
+   histo1(_histo1),
+   histo2(_histo2)
  { 
   if (histos.size()!=3){
     coutE(InputArguments) << "HZZ4L_RooSpinZeroPdf::HZZ4L_RooSpinZeroPdf(" << GetName() 
@@ -35,9 +37,10 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
    RooAbsPdf(other,name), 
    kd("kd",this,other.kd),
    kdint("kdint",this,other.kdint),
-   fai("fai",this,other.fa3),
-   histos(other.histos),
-   withAcc(other.withAcc)
+   fai("fai",this,other.fai),
+   histo0(other.histo0),
+   histo1(other.histo1),
+   histo2(other.histo2)
  { 
  } 
 
@@ -48,12 +51,12 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
 
    double value = 0.;
 
-   int binx =  histos[0]->GetXaxis()->FindBin(kd);
-   int biny =  histos[0]->GetYaxis()->FindBin(kdint);
+   int binx =  histo0.GetXaxis()->FindBin(kd);
+   int biny =  histo0.GetYaxis()->FindBin(kdint);
    
-   Double_t T1 = histos[0]->GetBinContent(binx, biny);
-   Double_t T2 = histos[1]->GetBinContent(binx, biny);
-   Double_t T4 = histos[2]->GetBinContent(binx, biny);
+   Double_t T1 = histo0.GetBinContent(binx, biny);
+   Double_t T2 = histo1.GetBinContent(binx, biny);
+   Double_t T4 = histo2.GetBinContent(binx, biny);
 
    double mysgn = 1;
 
@@ -84,17 +87,17 @@ Int_t HZZ4L_RooSpinZeroPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet&
 Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeName) const
 {
 
-  int nbinsx = histos[0]->GetXaxis()->GetNbins();
-  double binwidthx = histos[0]->GetXaxis()->GetBinWidth(1);
-  double xMin = histos[0]->GetXaxis()->GetBinLowEdge(1);
-  double xMax = histos[0]->GetXaxis()->GetBinUpEdge(nbinsx);
+  int nbinsx = histo0.GetXaxis()->GetNbins();
+  double binwidthx = histo0.GetXaxis()->GetBinWidth(1);
+  double xMin = histo0.GetXaxis()->GetBinLowEdge(1);
+  double xMax = histo0.GetXaxis()->GetBinUpEdge(nbinsx);
   double dx = (xMax - xMin) / nbinsx; 
 
   
-  int nbinsy = histos[0]->GetYaxis()->GetNbins();
-  double binwidthy = histos[0]->GetYaxis()->GetBinWidth(1);
-  double yMin = histos[0]->GetYaxis()->GetBinLowEdge(1);
-  double yMax = histos[0]->GetYaxis()->GetBinUpEdge(nbinsy);
+  int nbinsy = histo0.GetYaxis()->GetNbins();
+  double binwidthy = histo0.GetYaxis()->GetBinWidth(1);
+  double yMin = histo0.GetYaxis()->GetBinLowEdge(1);
+  double yMax = histo0.GetYaxis()->GetBinUpEdge(nbinsy);
   double dy = (yMax - yMin) / nbinsy; 
 
   /*
@@ -109,11 +112,11 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
      case 1: 
        {
 
-	 int biny = histos[0]->GetYaxis()->FindBin(kdint);
+	 int biny = histo0.GetYaxis()->FindBin(kdint);
 	 
-	 double Int_T1 = histos[0]->Integral(1, nbinsx, biny, biny);
-	 double Int_T2 = histos[1]->Integral(1, nbinsx, biny, biny);
-	 double Int_T4 = histos[2]->Integral(1, nbinsx, biny, biny);
+	 double Int_T1 = histo0.Integral(1, nbinsx, biny, biny);
+	 double Int_T2 = histo1.Integral(1, nbinsx, biny, biny);
+	 double Int_T4 = histo2.Integral(1, nbinsx, biny, biny);
 	 // something related to phase factor, this is by guess
 
 	 double mysgn = 1.;
@@ -134,11 +137,11 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
      case 2: 
        {
 	 
-	 int binx = histos[0]->GetXaxis()->FindBin(kd);
+	 int binx = histo0.GetXaxis()->FindBin(kd);
 
-	 double Int_T1 = histos[0]->Integral(binx, binx, 1, nbinsy);
-	 double Int_T2 = histos[1]->Integral(binx, binx, 1, nbinsy);
-	 double Int_T4 = histos[2]->Integral(binx, binx, 1, nbinsy);
+	 double Int_T1 = histo0.Integral(binx, binx, 1, nbinsy);
+	 double Int_T2 = histo1.Integral(binx, binx, 1, nbinsy);
+	 double Int_T4 = histo2.Integral(binx, binx, 1, nbinsy);
 
 	 double mysgn = 1.;
 	 if(fai < 0.) 
@@ -156,9 +159,9 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
        
      case 3: 
        {
-	 double Int_T1 = histos[0]->Integral();
-	 double Int_T2 = histos[1]->Integral();
-	 double Int_T4 = histos[2]->Integral();
+	 double Int_T1 = histo0.Integral();
+	 double Int_T2 = histo1.Integral();
+	 double Int_T4 = histo2.Integral();
 
 	 double mysgn = 1.;
 	 if(fai < 0.) 
@@ -167,8 +170,8 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
 	   }
 
 	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; ;
-	 int nbinsx = histos[0]->GetXaxis()->GetNbins();
-	 int nbinsy = histos[0]->GetYaxis()->GetNbins();
+	 int nbinsx = histo0.GetXaxis()->GetNbins();
+	 int nbinsy = histo0.GetYaxis()->GetNbins();
 
 
 	 integral = integral * dx * dy * 4.;

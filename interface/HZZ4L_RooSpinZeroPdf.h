@@ -21,8 +21,9 @@ public:
 		       RooAbsReal& _kd,
 		       RooAbsReal& _kdint,
 		       RooAbsReal& _fai,
-		       vector<TH2F*>& _histos,
-		       bool  _withAcc);
+		       TH2F& histo0,
+		       TH2F& histo1,
+		       TH2F& histo2);
 		    
   HZZ4L_RooSpinZeroPdf(const HZZ4L_RooSpinZeroPdf& other, const char* name=0) ;
   virtual TObject* clone(const char* newname) const { return new HZZ4L_RooSpinZeroPdf(*this,newname); }
@@ -37,8 +38,9 @@ protected:
   RooRealProxy kd ;
   RooRealProxy kdint ;
   RooRealProxy fai ;
-  vector<TH2F*> histos;
-  bool withAcc;
+  TH2F histo0;
+  TH2F histo1;
+  TH2F histo2;
   
     
   Double_t evaluate() const ;
