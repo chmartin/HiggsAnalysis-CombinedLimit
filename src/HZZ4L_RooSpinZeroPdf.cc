@@ -14,9 +14,9 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
 					     RooAbsReal& _kd,
 					     RooAbsReal& _kdint,
 					     RooAbsReal& _fai,
-					     TH2F& _histo0,
-					     TH2F& _histo1,
-					     TH2F& _histo2):
+					     TH2F _histo0,
+					     TH2F _histo1,
+					     TH2F _histo2):
    RooAbsPdf(name,title), 
    kd("kd","kd",this,_kd),
    kdint("kdint","kdint",this,_kdint),

@@ -12,6 +12,7 @@
 #include "RooCategoryProxy.h"
 #include "RooAbsReal.h"
 #include "RooAbsCategory.h"
+#include "TH2F.h"
 
  
 class HZZ4L_RooSpinZeroPdf : public RooAbsPdf {
@@ -21,9 +22,9 @@ public:
 		       RooAbsReal& _kd,
 		       RooAbsReal& _kdint,
 		       RooAbsReal& _fai,
-		       TH2F& histo0,
-		       TH2F& histo1,
-		       TH2F& histo2);
+		       TH2F histo0,
+		       TH2F histo1,
+		       TH2F histo2);
 		    
   HZZ4L_RooSpinZeroPdf(const HZZ4L_RooSpinZeroPdf& other, const char* name=0) ;
   virtual TObject* clone(const char* newname) const { return new HZZ4L_RooSpinZeroPdf(*this,newname); }
