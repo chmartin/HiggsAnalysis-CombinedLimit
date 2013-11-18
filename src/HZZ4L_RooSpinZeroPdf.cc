@@ -1,5 +1,5 @@
 #include "Riostream.h" 
-#include "HZZ4L_RooSpinZeroPdf.h" 
+#include "../interface/HZZ4L_RooSpinZeroPdf.h" 
 #include "RooAbsReal.h" 
 #include "RooAbsCategory.h" 
 #include <math.h>
@@ -83,14 +83,14 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
 {
 
   int nbinsx = histo0.GetXaxis()->GetNbins();
-  double binwidthx = histo0.GetXaxis()->GetBinWidth(1);
+  
   double xMin = histo0.GetXaxis()->GetBinLowEdge(1);
   double xMax = histo0.GetXaxis()->GetBinUpEdge(nbinsx);
   double dx = (xMax - xMin) / nbinsx; 
 
   
   int nbinsy = histo0.GetYaxis()->GetNbins();
-  double binwidthy = histo0.GetYaxis()->GetBinWidth(1);
+  
   double yMin = histo0.GetYaxis()->GetBinLowEdge(1);
   double yMax = histo0.GetYaxis()->GetBinUpEdge(nbinsy);
   double dy = (yMax - yMin) / nbinsy; 
@@ -165,8 +165,7 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
 	   }
 
 	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; ;
-	 int nbinsx = histo0.GetXaxis()->GetNbins();
-	 int nbinsy = histo0.GetYaxis()->GetNbins();
+	 
 
 
 	 integral = integral * dx * dy * 4.;

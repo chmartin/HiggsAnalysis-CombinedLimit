@@ -9,6 +9,7 @@
 #include "../interface/SimpleCacheSentry.h"
 #include "../interface/th1fmorph.h"
 #include "../interface/HZZ4LRooPdfs.h"
+#include "../interface/HZZ4L_RooSpinZeroPdf.h"
 #include "../interface/HWWLVJRooPdfs.h"
 #include "../interface/HZZ2L2QRooPdfs.h"
 #include "../interface/HGGRooPdfs.h"
@@ -32,6 +33,7 @@
 #pragma link C++ class FastVerticalInterpHistPdfBase+;
 #pragma link C++ class FastVerticalInterpHistPdf+;
 #pragma link C++ class FastVerticalInterpHistPdf2D+;
+#pragma link C++ class HZZ4L_RooSpinZeroPdf+;
 #pragma link C++ class AsymPow+;
 #pragma link C++ class CombDataSetFactory+;
 #pragma link C++ class TH1Keys+;
