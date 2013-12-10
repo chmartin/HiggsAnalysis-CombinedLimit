@@ -122,7 +122,7 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
 
 	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2  + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; ;
 
-	 integral = integral * dx * 4.; 
+	 integral = integral * dx; 
 	  
 	 return integral; 
 	 
@@ -147,7 +147,7 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
 	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 +  mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; 
 	 
 	 // something related to phase factor, this is by guess
-	 integral = integral * dy * 4.;
+	 integral = integral * dy;
 
 	 return integral;
        }
@@ -168,7 +168,7 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
 	 
 
 
-	 integral = integral * dx * dy * 4.;
+	 integral = integral * dx * dy;
 
 	 // std::cout << __LINE__ << " "<< integral << "\n";
 
