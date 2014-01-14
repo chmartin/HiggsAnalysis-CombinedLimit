@@ -54,7 +54,7 @@ class SpinZeroHiggs(PhysicsModel):
             print "Fixing CMS_zz4l_fg4"
             poi = "r"
         else:
-            self.modelBuilder.doVar("CMS_zz4l_fg4[0,0,1]")
+            self.modelBuilder.doVar("CMS_zz4l_fg4[-0.,-1,1]")
             poi = "CMS_zz4l_fg4"
 
             if self.muFloating:
