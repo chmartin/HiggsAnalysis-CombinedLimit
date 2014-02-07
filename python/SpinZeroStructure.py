@@ -49,13 +49,13 @@ class SpinZeroHiggs(PhysicsModel):
     def doParametersOfInterest(self):
         """Create POI and other parameters, and define the POI set."""
         if self.fg4fixed:
-            self.modelBuilder.doVar("CMS_zz4l_fg4[0]")
+            self.modelBuilder.doVar("CMS_zz4l_Gamma[1]")
             self.modelBuilder.doVar("r[1,0,4]")
             print "Fixing CMS_zz4l_fg4"
             poi = "r"
         else:
-            self.modelBuilder.doVar("CMS_zz4l_fg4[-0.,-1,1]")
-            poi = "CMS_zz4l_fg4"
+            self.modelBuilder.doVar("CMS_zz4l_Gamma[1.,0.001,25]")
+            poi = "CMS_zz4l_Gamma"
 
             if self.muFloating:
                 self.modelBuilder.doVar("r[1,0,4]")
