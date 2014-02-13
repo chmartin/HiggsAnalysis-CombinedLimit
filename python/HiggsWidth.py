@@ -15,16 +15,19 @@ class Higgswidth(PhysicsModel):
         self.modelBuilder.doModelBOnly = False
 
     def getYieldScale(self,bin,process):
-        if self:is2l2nu:
+        if self.is2l2nu:
+            name = "%s_%s_func"%(process,bin)
             if process == "ggH_s":
-                self.modelBuilder.factory_("expr::ggH_sig(\"@0*@1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")
-                return ggH_sig
-            if process == "ggH_b":
-                self.modelBuilder.factory_("expr::ggH_bkg(\"1-sqrt(@0,@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")
-                return ggH_bkg
-            if process == "ggH_sbi":
-                self.modelBuilder.factory_("expr::ggH_sbi_norm(\"sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")
-                return ggH_sbi
+                self.modelBuilder.factory_("expr::%s(\"@0*@1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)"%(name))
+                return name
+            elif process == "ggH_b":
+                self.modelBuilder.factory_("expr::%s(\"1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)"%(name))
+                return name
+            elif process == "ggH_sbi":
+                self.modelBuilder.factory_("expr::%s(\"sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)"%(name))
+                return name
+            else:
+                return 1
         else:
             return 1
             
@@ -34,7 +37,7 @@ class Higgswidth(PhysicsModel):
                 print "Will fix CMS_zz4l_GGsm to 1 and float mu"
                 self.GGsmfixed = True
             if po == "is2l2nu":
-                print "Will consider cards in 2l2nu style (separated S, B, S+B+I)
+                print "Will consider cards in 2l2nu style (separated S, B, S+B+I)"
                 self.is2l2nu = True
             
     def doParametersOfInterest(self):
