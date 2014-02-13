@@ -15,19 +15,9 @@ class Higgswidth(PhysicsModel):
         self.modelBuilder.doModelBOnly = False
 
     def getYieldScale(self,bin,process):
-        if self.is2l2nu:
-            name = "%s_%s_func"%(process,bin)
-            if process == "ggH_s":
-                self.modelBuilder.factory_("expr::%s(\"@0*@1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)"%(name))
-                return name
-            elif process == "ggH_b":
-                self.modelBuilder.factory_("expr::%s(\"1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)"%(name))
-                return name
-            elif process == "ggH_sbi":
-                self.modelBuilder.factory_("expr::%s(\"sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)"%(name))
-                return name
-            else:
-                return 1
+        if process == "ggH_s": return "ggH_s_func"
+        elif process == "ggH_b": return "ggH_b_func"
+        elif process == "ggH_sbi": return "ggH_sbi_func"
         else:
             return 1
             
@@ -42,23 +32,27 @@ class Higgswidth(PhysicsModel):
             
     def doParametersOfInterest(self):
         """Create POI and other parameters, and define the POI set."""
-        if self.is2l2nu:
+	if self.is2l2nu:
             self.modelBuilder.doVar("CMS_zz4l_GGsm[1.,0.,50.]")
-            self.modelBuilder.doVar("CMS_zz4l_mu[1.,0.,4]")
-            if self.GGsmfixed:
-                print "Fixing CMS_zz4l_GGsm"
-                poi = "CMS_zz4l_mu"
-            else:
-                poi = "CMS_zz4l_GGsm"
-        if self.GGsmfixed:
-            self.modelBuilder.out.var("CMS_zz4l_GGsm[1.]")
+            self.modelBuilder.doVar("CMS_zz4l_mu[1.,0.,4]")        
+	
+	if self.GGsmfixed:
+            self.modelBuilder.out.var("CMS_zz4l_GGsm")
+	    self.modelBuilder.out.var("CMS_zz4l_GGsm").setVal(1)
+	    self.modelBuilder.out.var("CMS_zz4l_GGsm").setConstant(True)
             self.modelBuilder.out.var("CMS_zz4l_mu")
             print "Fixing CMS_zz4l_GGsm"
             poi = "CMS_zz4l_mu"
         else:
-            self.modelBuilder.out.var("CMS_zz4l_GGsm[25.]")
-            self.modelBuilder.out.var("CMS_zz4l_mu[1.]")
+            self.modelBuilder.out.var("CMS_zz4l_GGsm")
+	    self.modelBuilder.out.var("CMS_zz4l_GGsm").setVal(25)
+            self.modelBuilder.out.var("CMS_zz4l_mu")
+	    self.modelBuilder.out.var("CMS_zz4l_mu").setVal(1)
             poi = "CMS_zz4l_GGsm"
+
+	self.modelBuilder.factory_("expr::ggH_s_func(\"@0*@1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")
+        self.modelBuilder.factory_("expr::ggH_b_func(\"1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")
+        self.modelBuilder.factory_("expr::ggH_sbi_func(\"sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")        
         
         self.modelBuilder.doSet("POI",poi)
         
