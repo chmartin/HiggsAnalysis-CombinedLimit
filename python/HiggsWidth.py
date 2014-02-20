@@ -34,7 +34,8 @@ class Higgswidth(PhysicsModel):
         """Create POI and other parameters, and define the POI set."""
 	if self.is2l2nu:
             self.modelBuilder.doVar("CMS_zz4l_GGsm[1.,0.,50.]")
-            self.modelBuilder.doVar("CMS_zz4l_mu[1.,0.,4]")        
+            self.modelBuilder.doVar("CMS_zz4l_mu[1.,0.,4]")
+            self.modelBuilder.doVar("CMS_zz4l_kbkg[1.,0.,2.]")
 	
 	if self.GGsmfixed:
             self.modelBuilder.out.var("CMS_zz4l_GGsm")
@@ -45,14 +46,14 @@ class Higgswidth(PhysicsModel):
             poi = "CMS_zz4l_mu"
         else:
             self.modelBuilder.out.var("CMS_zz4l_GGsm")
-	    self.modelBuilder.out.var("CMS_zz4l_GGsm").setVal(25)
+	    self.modelBuilder.out.var("CMS_zz4l_GGsm").setVal(1)
             self.modelBuilder.out.var("CMS_zz4l_mu")
 	    self.modelBuilder.out.var("CMS_zz4l_mu").setVal(1)
             poi = "CMS_zz4l_GGsm"
 
-	self.modelBuilder.factory_("expr::ggH_s_func(\"@0*@1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")
-        self.modelBuilder.factory_("expr::ggH_b_func(\"1-sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")
-        self.modelBuilder.factory_("expr::ggH_sbi_func(\"sqrt(@0*@1)\",CMS_zz4l_mu,CMS_zz4l_GGsm)")        
+	self.modelBuilder.factory_("expr::ggH_s_func(\"@0*@1-sqrt(@0*@1*@2)\",CMS_zz4l_mu,CMS_zz4l_GGsm,CMS_zz4l_kbkg)")
+        self.modelBuilder.factory_("expr::ggH_b_func(\"@2-sqrt(@0*@1*@2)\",CMS_zz4l_mu,CMS_zz4l_GGsm,CMS_zz4l_kbkg)")
+        self.modelBuilder.factory_("expr::ggH_sbi_func(\"sqrt(@0*@1*@2)\",CMS_zz4l_mu,CMS_zz4l_GGsm,CMS_zz4l_kbkg)")
         
         self.modelBuilder.doSet("POI",poi)
         
