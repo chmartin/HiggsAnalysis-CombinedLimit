@@ -4,7 +4,9 @@
 #include "RooAbsCategory.h" 
 #include <math.h>
 #include "TMath.h"
-#include "TH2F.h"
+#include "TH3F.h"
+#include "TAxis.h"
+#include "RooDataHist.h"
 
 using namespace TMath;
 
@@ -13,18 +15,29 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
   HZZ4L_RooSpinZeroPdf::HZZ4L_RooSpinZeroPdf(const char *name, const char *title, 
 					     RooAbsReal& _kd,
 					     RooAbsReal& _kdint,
+					     RooAbsReal& _ksmd,
 					     RooAbsReal& _fai,
-					     TH2F *_histo0,
-					     TH2F *_histo1,
-					     TH2F *_histo2):
+					     const RooArgList& inCoefList): 
    RooAbsPdf(name,title), 
    kd("kd","kd",this,_kd),
    kdint("kdint","kdint",this,_kdint),
+   ksmd("ksmd","ksmd",this,_ksmd),
    fai("fai","fai",this,_fai),
-   histo0(_histo0),
-   histo1(_histo1),
-   histo2(_histo2)
+  _coefList("coefList","List of funcficients",this) 
+  
  { 
+  TIterator* coefIter = inCoefList.createIterator() ;
+  RooAbsArg* func;
+  while((func = (RooAbsArg*)coefIter->Next())) {
+    if (!dynamic_cast<RooAbsReal*>(func)) {
+      coutE(InputArguments) << "ERROR: :HZZ4L_RooSpinZeroPdf(" << GetName() << ") funcficient " << func->GetName() << " is not of type RooAbsReal" << endl;
+      assert(0);
+    }
+    _coefList.add(*func) ;
+  }
+  delete coefIter;
+  
+  _coefIter = _coefList.createIterator() ;
  } 
 
 
@@ -32,27 +45,23 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
    RooAbsPdf(other,name), 
    kd("kd",this,other.kd),
    kdint("kdint",this,other.kdint),
+   ksmd("ksmd",this,other.ksmd),
    fai("fai",this,other.fai),
-   histo0(other.histo0),
-   histo1(other.histo1),
-   histo2(other.histo2)
- { 
- } 
+  _coefList("coefList",this,other._coefList)
 
+ { 
+  _coefIter = _coefList.createIterator() ;
+ } 
 
 
  Double_t HZZ4L_RooSpinZeroPdf::evaluate() const 
  { 
-
    double value = 0.;
 
-   int binx =  histo0->GetXaxis()->FindBin(kd);
-   int biny =  histo0->GetYaxis()->FindBin(kdint);
-   
-   Double_t T1 = histo0->GetBinContent(binx, biny);
-   Double_t T2 = histo1->GetBinContent(binx, biny);
-   Double_t T4 = histo2->GetBinContent(binx, biny);
-
+	
+   Double_t T1 = dynamic_cast<const RooHistFunc*>(_coefList.at(0))->getVal();
+   Double_t T2 = dynamic_cast<const RooHistFunc*>(_coefList.at(1))->getVal();
+   Double_t T4 = dynamic_cast<const RooHistFunc*>(_coefList.at(2))->getVal();
    double mysgn = 1;
 
    if(fai < 0.) 
@@ -71,9 +80,10 @@ ClassImp(HZZ4L_RooSpinZeroPdf)
 Int_t HZZ4L_RooSpinZeroPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* /*rangeName*/) const
 {
 
-  if (matchArgs(allVars,analVars,RooArgSet(*kd.absArg(), *kdint.absArg()))) return 3 ;
-  if (matchArgs(allVars,analVars,kd)) return 1 ;
-  if (matchArgs(allVars,analVars,kdint)) return 2 ;
+  if (matchArgs(allVars,analVars,RooArgSet(*kd.absArg(), *kdint.absArg(), *ksmd.absArg()))) return 4 ;
+  //if (matchArgs(allVars,analVars,kd)) return 1 ;
+  //if (matchArgs(allVars,analVars,kdint)) return 2 ;
+  //if (matchArgs(allVars,analVars,ksmd)) return 3 ;
 
   return 0 ;
 
@@ -81,82 +91,86 @@ Int_t HZZ4L_RooSpinZeroPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet&
 
 Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeName) const
 {
-
-  int nbinsx = histo0->GetXaxis()->GetNbins();
-  
-  double xMin = histo0->GetXaxis()->GetBinLowEdge(1);
-  double xMax = histo0->GetXaxis()->GetBinUpEdge(nbinsx);
-  double dx = (xMax - xMin) / nbinsx; 
-
-  
-  int nbinsy = histo0->GetYaxis()->GetNbins();
-  
-  double yMin = histo0->GetYaxis()->GetBinLowEdge(1);
-  double yMax = histo0->GetYaxis()->GetBinUpEdge(nbinsy);
-  double dy = (yMax - yMin) / nbinsy; 
-
-  /*
-  std::cout << "nbinsx = " << nbinsx << ", binwidthx = " << binwidthx << ", xMin = " << xMin << ", xMax = " << xMax << "\n";
-  std::cout << "nbinsy = " << nbinsy << ", binwidthy = " << binwidthy << ", yMin = " << yMin << ", yMax = " << yMax << "\n";
-  */
-  
    switch(code)
      {
 
        // integrate out kd, depend on kdint
-     case 1: 
+//     case 1: 
+//       {
+//
+//	 int biny = histo0->GetYaxis()->FindBin(kdint);
+//	 
+//	 double Int_T1 = histo0->Integral(1, nbinsx, biny, biny, 1, nbinsz);
+//	 double Int_T2 = histo1->Integral(1, nbinsx, biny, biny, 1, nbinsz);
+//	 double Int_T4 = histo2->Integral(1, nbinsx, biny, biny, 1, nbinsz);
+//	 // something related to phase factor, this is by guess
+//
+//	 double mysgn = 1.;
+//	 if(fai < 0.) 
+//	   {
+//	     mysgn = -1.;
+//	   }
+//
+//	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2  + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; ;
+//
+//	 integral = integral * dx; 
+//	  
+//	 return integral; 
+//	 
+//       }
+//       
+//       // integrate out  kdint, depend on kd
+//     case 2: 
+//       {
+//	 
+//	 int binx = histo0->GetXaxis()->FindBin(kd);
+//
+//	 double Int_T1 = histo0->Integral(binx, binx, 1, nbinsy, 1, nbinsz);
+//	 double Int_T2 = histo1->Integral(binx, binx, 1, nbinsy, 1, nbinsz);
+//	 double Int_T4 = histo2->Integral(binx, binx, 1, nbinsy, 1, nbinsz);
+//
+//	 double mysgn = 1.;
+//	 if(fai < 0.) 
+//	   {
+//	     mysgn = -1.;
+//	   }
+//
+//	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 +  mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; 
+//	 
+//	 // something related to phase factor, this is by guess
+//	 integral = integral * dy;
+//
+//	 return integral;
+//       }
+//       
+//     case 3: 
+//       {
+//	 
+//	 int binz = histo0->GetZaxis()->FindBin(ksmd);
+//
+//	 double Int_T1 = histo0->Integral(1, nbinsx, 1, nbinsy, binz, binz);
+//	 double Int_T2 = histo1->Integral(1, nbinsx, 1, nbinsy, binz, binz);
+//	 double Int_T4 = histo2->Integral(1, nbinsx, 1, nbinsy, binz, binz);
+//
+//	 double mysgn = 1.;
+//	 if(fai < 0.) 
+//	   {
+//	     mysgn = -1.;
+//	   }
+//
+//	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 +  mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; 
+//	 
+//	 // something related to phase factor, this is by guess
+//	 integral = integral * dz;
+//
+//	 return integral;
+//       }
+     case 4: 
        {
+ double Int_T1  = dynamic_cast<const RooHistFunc*>(_coefList.at(0))-> analyticalIntegral(1000);
+ double Int_T2  = dynamic_cast<const RooHistFunc*>(_coefList.at(1))-> analyticalIntegral(1000);
+ double Int_T4  = dynamic_cast<const RooHistFunc*>(_coefList.at(2))-> analyticalIntegral(1000);
 
-	 int biny = histo0->GetYaxis()->FindBin(kdint);
-	 
-	 double Int_T1 = histo0->Integral(1, nbinsx, biny, biny);
-	 double Int_T2 = histo1->Integral(1, nbinsx, biny, biny);
-	 double Int_T4 = histo2->Integral(1, nbinsx, biny, biny);
-	 // something related to phase factor, this is by guess
-
-	 double mysgn = 1.;
-	 if(fai < 0.) 
-	   {
-	     mysgn = -1.;
-	   }
-
-	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2  + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; ;
-
-	 integral = integral * dx; 
-	  
-	 return integral; 
-	 
-       }
-       
-       // integrate out  kdint, depend on kd
-     case 2: 
-       {
-	 
-	 int binx = histo0->GetXaxis()->FindBin(kd);
-
-	 double Int_T1 = histo0->Integral(binx, binx, 1, nbinsy);
-	 double Int_T2 = histo1->Integral(binx, binx, 1, nbinsy);
-	 double Int_T4 = histo2->Integral(binx, binx, 1, nbinsy);
-
-	 double mysgn = 1.;
-	 if(fai < 0.) 
-	   {
-	     mysgn = -1.;
-	   }
-
-	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 +  mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; 
-	 
-	 // something related to phase factor, this is by guess
-	 integral = integral * dy;
-
-	 return integral;
-       }
-       
-     case 3: 
-       {
-	 double Int_T1 = histo0->Integral();
-	 double Int_T2 = histo1->Integral();
-	 double Int_T4 = histo2->Integral();
 
 	 double mysgn = 1.;
 	 if(fai < 0.) 
@@ -165,12 +179,6 @@ Double_t HZZ4L_RooSpinZeroPdf::analyticalIntegral(Int_t code, const char* rangeN
 	   }
 
 	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * Int_T4; ;
-	 
-
-
-	 integral = integral * dx * dy;
-
-	 // std::cout << __LINE__ << " "<< integral << "\n";
 
 	 return integral;
        }

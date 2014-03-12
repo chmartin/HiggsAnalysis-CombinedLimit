@@ -9,42 +9,42 @@
 
 #include "RooAbsPdf.h"
 #include "RooRealProxy.h"
+#include "RooRealVar.h"
 #include "RooCategoryProxy.h"
 #include "RooAbsReal.h"
 #include "RooAbsCategory.h"
-#include "TH2F.h"
+#include "TH3F.h"
+#include "TH1.h"
+#include "RooDataHist.h"
+#include "RooHistFunc.h"
+using namespace RooFit;
 
- 
 class HZZ4L_RooSpinZeroPdf : public RooAbsPdf {
+protected:
+
+  RooRealProxy kd ;
+  RooRealProxy kdint ;
+  RooRealProxy ksmd ;
+  RooRealProxy fai ;
+  RooListProxy _coefList ;  //  List of funcficients
+  TIterator* _coefIter ;    //! Iterator over funcficient lis
+  Double_t evaluate() const ;
 public:
   HZZ4L_RooSpinZeroPdf() {} ; 
   HZZ4L_RooSpinZeroPdf(const char *name, const char *title,
 		       RooAbsReal& _kd,
 		       RooAbsReal& _kdint,
+					 RooAbsReal& _ksmd,
 		       RooAbsReal& _fai,
-		       TH2F* _histo0,
-		       TH2F* _histo1,
-		       TH2F* _histo2);
+			const RooArgList& inCoefList);
 		    
   HZZ4L_RooSpinZeroPdf(const HZZ4L_RooSpinZeroPdf& other, const char* name=0) ;
   virtual TObject* clone(const char* newname) const { return new HZZ4L_RooSpinZeroPdf(*this,newname); }
-  inline virtual ~HZZ4L_RooSpinZeroPdf() { }
+  inline virtual ~HZZ4L_RooSpinZeroPdf() {}
   
   Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const ;
   Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const ;
-  
-	
-protected:
-
-  RooRealProxy kd ;
-  RooRealProxy kdint ;
-  RooRealProxy fai ;
-  TH2F* histo0;
-  TH2F* histo1;
-  TH2F* histo2;
-  
-    
-  Double_t evaluate() const ;
+  const RooArgList& coefList() const { return _coefList ; }
 
 private:
 
