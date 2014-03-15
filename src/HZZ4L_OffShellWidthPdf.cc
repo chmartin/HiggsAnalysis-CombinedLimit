@@ -4,7 +4,9 @@
 #include "RooAbsCategory.h" 
 #include <math.h>
 #include "TMath.h"
-#include "TH2F.h"
+#include "RooDataHist.h"
+#include "RooHistFunc.h"
+#include "TIterator.h"
 
 using namespace TMath;
 
@@ -14,19 +16,30 @@ ClassImp(HZZ4L_OffShellWidthPdf)
 						 RooAbsReal& _mass,
 						 RooAbsReal& _widthKD,
 						 RooAbsReal& _Gamma,
-						 RooAbsReal& _r,
-						 TH2F *_histoBkg,
-						 TH2F *_histoSig,
-						 TH2F *_histoInterf):
+						 RooAbsReal& _mu,
+						 RooAbsReal& _kbkg,
+						 const RooArgList& inHistList):
    RooAbsPdf(name,title), 
    mass("mass","mass",this,_mass),
    widthKD("widthKD","widthKD",this,_widthKD),
    Gamma("Gamma","Gamma",this,_Gamma),
-   r("r","r",this,_r),
-   histoBkg(_histoBkg),
-   histoSig(_histoSig),
-   histoInterf(_histoInterf)
+   mu("mu","mu",this,_mu),
+   kbkg("kbkg","kbkg",this,_kbkg),
+   _histList("histList","ListOfHists",this)
  { 
+   TIterator* histIter = inHistList.createIterator();
+   RooAbsArg* func;
+   while((func = (RooAbsArg*)histIter->Next()))
+     {
+       if (!dynamic_cast<RooAbsReal*>(func))
+	 {
+	   coutE(InputArguments) << "ERROR: :HZZ4L_OffShellWidthPdf(" << GetName() << ") Hist " << func->GetName() << " is not of type RooAbsReal" << endl;
+	   assert(0);
+	 }
+       _histList.add(*func);
+     }
+   delete histIter;
+   _histIter = _histList.createIterator();
  } 
 
 
@@ -35,11 +48,11 @@ ClassImp(HZZ4L_OffShellWidthPdf)
    mass("mass",this,other.mass),
    widthKD("widthKD",this,other.widthKD),
    Gamma("Gamma",this,other.Gamma),
-   r("r",this,other.r),
-   histoBkg(other.histoBkg),
-   histoSig(other.histoSig),
-   histoInterf(other.histoInterf)
+   mu("mu",this,other.mu),
+   kbkg("kbkg",this,other.kbkg),
+   _histList("histList",this,other._histList)
  { 
+   _histIter = _histList.createIterator();
  } 
 
 
@@ -48,16 +61,18 @@ ClassImp(HZZ4L_OffShellWidthPdf)
  { 
 
    double value = 0.;
-
-   int binx =  histoBkg->GetXaxis()->FindBin(mass);
-   int biny =  histoBkg->GetYaxis()->FindBin(widthKD);
    
-   Double_t T1 = histoBkg->GetBinContent(binx, biny);
-   Double_t T2 = histoSig->GetBinContent(binx, biny);
-   Double_t T4 = histoInterf->GetBinContent(binx, biny);
+   Double_t T1 = dynamic_cast<const RooHistFunc*>(_histList.at(0))->getVal();
+   Double_t T2 = dynamic_cast<const RooHistFunc*>(_histList.at(1))->getVal();
+   Double_t T4 = dynamic_cast<const RooHistFunc*>(_histList.at(2))->getVal();
 
+   double mysgn = 1;
+   if (kbkg < 0.)
+     {
+       mysgn = -1.;
+     }
    
-   value = T1 + Gamma*r*T2 + sqrt(Gamma*r)*T4; 
+   value = kbkg*T1 + Gamma*mu*T2 + mysgn*sqrt(Gamma*mu*fabs(kbkg))*T4; 
    
    if ( value <= 0.) return 1.0e-200;
    
@@ -69,8 +84,8 @@ Int_t HZZ4L_OffShellWidthPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSe
 {
 
   if (matchArgs(allVars,analVars,RooArgSet(*mass.absArg(), *widthKD.absArg()))) return 3 ;
-  if (matchArgs(allVars,analVars,mass)) return 1 ;
-  if (matchArgs(allVars,analVars,widthKD)) return 2 ;
+  //if (matchArgs(allVars,analVars,mass)) return 1 ;
+  //if (matchArgs(allVars,analVars,widthKD)) return 2 ;
 
   return 0 ;
 
@@ -78,67 +93,28 @@ Int_t HZZ4L_OffShellWidthPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSe
 
 Double_t HZZ4L_OffShellWidthPdf::analyticalIntegral(Int_t code, const char* rangeName) const
 {
-
-  int nbinsx = histoBkg->GetXaxis()->GetNbins();
-  
-  double xMin = histoBkg->GetXaxis()->GetBinLowEdge(1);
-  double xMax = histoBkg->GetXaxis()->GetBinUpEdge(nbinsx);
-  double dx = (xMax - xMin) / nbinsx; 
-
-  
-  int nbinsy = histoBkg->GetYaxis()->GetNbins();
-  
-  double yMin = histoBkg->GetYaxis()->GetBinLowEdge(1);
-  double yMax = histoBkg->GetYaxis()->GetBinUpEdge(nbinsy);
-  double dy = (yMax - yMin) / nbinsy; 
   
    switch(code)
      {
 
-       // integrate out mass, depend on widthKD
-     case 1: 
-       {
-
-	 int biny = histoBkg->GetYaxis()->FindBin(widthKD);
-	 
-	 double Int_T1 = histoBkg->Integral(1, nbinsx, biny, biny);
-	 double Int_T2 = histoSig->Integral(1, nbinsx, biny, biny);
-	 double Int_T4 = histoInterf->Integral(1, nbinsx, biny, biny);
-
-	 double integral = Int_T1 + Gamma*r*Int_T2  + sqrt(Gamma*r)*Int_T4;
-
-	 integral = integral * dx; 
-	  
-	 return integral; 
-	 
-       }
        
-       // integrate out  widthKD, depend on mass
-     case 2: 
-       {
-	 
-	 int binx = histoBkg->GetXaxis()->FindBin(mass);
-
-	 double Int_T1 = histoBkg->Integral(binx, binx, 1, nbinsy);
-	 double Int_T2 = histoSig->Integral(binx, binx, 1, nbinsy);
-	 double Int_T4 = histoInterf->Integral(binx, binx, 1, nbinsy);
-
-	 double integral = Int_T1 + Gamma*r*Int_T2 +  sqrt(Gamma*r)*Int_T4; 
-	 
-	 integral = integral * dy;
-
-	 return integral;
-       }
        
      case 3: 
        {
-	 double Int_T1 = histoBkg->Integral();
-	 double Int_T2 = histoSig->Integral();
-	 double Int_T4 = histoInterf->Integral();
+	 
+	 Double_t Int_T1 = dynamic_cast<const RooHistFunc*>(_histList.at(0))->analyticalIntegral(1000);
+	 Double_t Int_T2 = dynamic_cast<const RooHistFunc*>(_histList.at(1))->analyticalIntegral(1000);
+	 Double_t Int_T4 = dynamic_cast<const RooHistFunc*>(_histList.at(2))->analyticalIntegral(1000);
 
-	 double integral = Int_T1 + Gamma*r*Int_T2 + sqrt(Gamma*r)*Int_T4; 
+	 double mysgn = 1;
+	 if (kbkg < 0.)
+	   {
+	     mysgn = -1.;
+	   }
 
-	 integral = integral * dx * dy;
+	 double integral = kbkg*Int_T1 + Gamma*mu*Int_T2 + mysgn*sqrt(Gamma*mu*fabs(kbkg))*Int_T4; 
+
+	 integral = integral;
 
 	 return integral;
        }
