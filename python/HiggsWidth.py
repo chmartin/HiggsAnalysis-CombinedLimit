@@ -38,23 +38,41 @@ class Higgswidth(PhysicsModel):
     def setPhysicsOptions(self,physOptions):
         for po in physOptions:
             if po == "GGsmfixed":
-                print "Will fix CMS_zz4l_GGsm to 1 and float mu"
+                print "Will fix CMS_zz4l_GGsm to 1 and float muV and muF"
                 self.GGsmfixed = True
             if po == "RVRFfixed":
                 print "Will fix muV and muF to 1 and float mu"
                 self.RVRFfixed = True
             if po == "is2l2nu":
-                print "Will make 2l2nu style cards"
+                print "Will make 2l2nu style cards and float muV and muF"
                 self.is2l2nu = True
+                
+            if po == "GGsmRVRFfixed":
+                print "Will fix CMS_zz4l_GGsm to 1 and float mu"
+                self.GGsmfixed = True
+                self.RVRFfixed = True
+            if po == "is2l2nuRVRFfixed":
+                print "Will make 2l2nu style cards and float mu"
+                self.is2l2nu = True
+                self.RVRFfixed = True
+            if po == "is2l2nuGGsmfixed":
+                print "Will make 2l2nu style cards, fix GGsm to 1 and float muV and muF"
+                self.is2l2nu = True
+                self.GGsmfixed = True
+            if po == "is2l2nuGGsmRVRFfixed":
+                print "Will make 2l2nu style cards, fix GGsm to 1 and float mu"
+                self.is2l2nu = True
+                self.RVRFfixed = True
+                self.GGsmfixed = True
             
     def doParametersOfInterest(self):
         """Create POI and other parameters, and define the POI set."""
         if self.is2l2nu:
             self.modelBuilder.doVar("CMS_zz4l_GGsm[1.,0.,30.]")
+            self.modelBuilder.doVar("CMS_widthH_kbkg[1.,0.,2.]")
             self.modelBuilder.doVar("R[1.,0.,4.]")
             self.modelBuilder.doVar("RF[1.,0.,4.]")
             self.modelBuilder.doVar("RV[1.,0.,8.]")
-            self.modelBuilder.doVar("CMS_widthH_kbkg[1.,0.,2.]")
         
 	if self.GGsmfixed:
             self.modelBuilder.out.var("CMS_zz4l_GGsm")
@@ -74,7 +92,7 @@ class Higgswidth(PhysicsModel):
         else:
 	    self.modelBuilder.out.var("CMS_zz4l_GGsm").setVal(1)
             self.modelBuilder.out.var("CMS_zz4l_GGsm").setRange(0.0001,30.0001)
-	    self.modelBuilder.out.var("RF").setVal(1)
+            self.modelBuilder.out.var("RF").setVal(1)
 	    self.modelBuilder.out.var("RV").setVal(1)
 	    self.modelBuilder.out.var("R").setVal(1)
             self.modelBuilder.out.var("CMS_widthH_kbkg")
